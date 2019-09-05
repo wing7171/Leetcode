@@ -121,3 +121,147 @@ public:
 解释：合并有序数组，然后取中间位置的数
 
 No.4 Longest Palindromic Substring
+
+No.5 3sum
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int>> res;
+        sort(nums.begin(), nums.end());
+        for(int i = 0; i < nums.size(); i++) {
+            if(i != 0 && nums[i] == nums[i-1]) {
+                continue;
+            }
+            
+            int j = i + 1, k = nums.size() - 1;
+            while(j < nums.size() - 1 && k >= 0 && j < k) {
+                if(nums[i] + nums[j] + nums[k] == 0) {
+                    vector<int> temp;
+                    temp.push_back(nums[i]);
+                    temp.push_back(nums[j]);
+                    temp.push_back(nums[k]);
+                    res.push_back(temp);
+                    j++;
+                    while(j < k && nums[j] ==  nums[j-1]) {
+                        j++;
+                    }
+                } else if (nums[i] + nums[j] + nums[k] > 0) {
+                    k--;
+                } else {
+                    j++;
+                }
+            }
+        }
+        return res;
+    }
+    
+};
+
+No.6 3Sum Closest
+class Solution {
+public:
+    int threeSumClosest(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        int res, minDis = INT_MAX;
+        for(int i = 0; i < nums.size(); i++) {
+            if(i != 0 && nums[i] == nums[i-1]) {
+                continue;
+            }
+            int j = i + 1, k = nums.size() - 1;
+            while(j < k) {
+                int sum = nums[i] + nums[j] + nums[k];
+                if(sum == target) {
+                    return sum;
+                } else if(sum < target) {
+                    j++;
+                } else {
+                    k--;
+                }
+                if(abs(target - sum) < minDis) {
+                    minDis = abs(target - sum);
+                    res = sum;
+                }
+            }
+        }
+        return res;
+    }
+};
+
+No.7 Remove Nth Node From End of List
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        if(!head) {
+            return NULL;
+        }
+        ListNode* slow = head, *fast = head;
+        for(int count = 1; count <= n; count++) {
+            fast = fast->next;
+        }
+        ListNode* pre = NULL;
+        while(slow && fast) {
+            pre = slow;
+            slow = slow->next;
+            fast = fast->next;
+        }
+        if(pre) {
+            pre->next = slow->next;
+            slow->next = NULL;
+            return head;
+        }
+        return head->next;
+    }
+};
+
+No.8 Valid Parentheses
+
+class Solution {
+public:
+    bool isValid(string s) {
+        int n = s.length();
+        if(n == 0) {
+            return true;
+        }
+        if(n % 2) {
+            return false;
+        }
+        set<char> left {'(', '[', '{'};
+        set<char> right {')', ']', '}'};
+        stack<char> st;
+        for(int i = 0; i < s.length(); i++) {
+            if(left.find(s[i]) != left.end()) {
+                st.push(s[i]);
+            } else { // right
+                if(!st.empty()) {
+                    char ll = st.top();
+                    if(!isMatch(ll, s[i])) {
+                        return false;
+                    }
+                    st.pop();
+                } else {
+                    return false;
+                }
+                
+            }
+        }
+        if(st.empty()) {
+            return true;
+        }
+        return false;
+    }
+    bool isMatch(char ch1, char ch2) {
+        if((ch1 == '(' && ch2 == ')') || (ch1 == '[' && ch2 == ']') || 
+           (ch1 == '{' && ch2 == '}')) {
+            return true;
+        }
+        return false;
+    }
+};
