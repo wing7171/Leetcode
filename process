@@ -481,3 +481,22 @@ public:
         return false;
     }
 };
+
+No.15 Jump Game
+class Solution {
+public:
+    bool canJump(vector<int>& nums) {
+        if(nums.size() == 0) {
+            return true;
+        }
+        int reach = nums[0];
+        for(int i = 1; i < nums.size() && reach >= i; i++) {
+            if(i + nums[i] > reach) {
+                reach = i + nums[i];
+            }
+        }
+        return reach >= nums.size() - 1 ? true : false;
+    }
+};
+
+注解：每个元素能到达的位置为 下标+元素值
