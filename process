@@ -500,3 +500,287 @@ public:
 };
 
 注解：每个元素能到达的位置为 下标+元素值
+
+No.16 Jump Game II
+
+class Solution {
+public:
+    int jump(vector<int>& nums) {
+        int farthest = 0, last = 0, jumps = 0;
+        for(int i = 0; i < nums.size(); i++) {
+            if(i > last) { // exceed current reach
+                last = farthest; // greedy, goto the farthest
+                jumps++;
+            }
+            farthest = max(farthest, i + nums[i]); // record currently farthest 
+        }
+        return jumps;
+    }
+};
+注解：
+1. 能到达
+由于i + nums[i]为每个元素能到达的最远位置，那么从前往后遍历的过程中，我们就能得到到位置i为止，能到达的最远位置，即farthest
+2. 已到达
+last记录已经到达的位置，在遍历的时候，遍历指针i一旦超过last的到达范围，我们就需要继续往前跳，跳的策略是贪心策略，即跳farthest步；每跳都跳的最远，则总步数最少。
+
+No.17 Subsets
+class Solution {
+public:
+    vector<vector<int>> subsets(vector<int>& nums) {
+        vector<vector<int>> res;
+        vector<int> temp;
+        sort(nums.begin(), nums.end());
+        subsets(nums, 0, temp, res);
+        return res;
+    }
+    void subsets(vector<int> nums, int start, vector<int>& temp, vector<vector<int>>& res) {
+        res.push_back(temp);
+        for(int i = start; i < nums.size(); i++) {
+            temp.push_back(nums[i]);
+            subsets(nums, i+1, temp, res); // i+1
+            temp.pop_back();
+        }
+    }
+};
+注解：为了防止res中加入重复的序列，我们先把nums排序，生成子集的时候从小到大生成，就不会出现重复的情况，如子集已经包含1，则只能加2或3。
+
+No. 18 Unique Paths
+class Solution {
+public:
+    int uniquePaths(int m, int n) {
+        const int M = m;
+        const int N = n;
+        int dp[M+1][N+1];
+        for(int i = 0; i <= M; i++) {
+            for(int j = 0; j <= N; j++) {
+                dp[i][j] = 0;
+            }
+        }
+        dp[1][1] = 1;
+        for(int i = 1; i <= M; i++) {
+            for(int j = 1; j <= N; j++) {
+                if(i == 1 && j == 1) {
+                    continue;
+                }
+                dp[i][j] = dp[i-1][j] + dp[i][j-1];
+            }
+        }
+        return dp[M][N];
+    }
+};
+
+No.19 Merge Intervals
+class Solution {
+public:
+    vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        vector<vector<int>> res;
+        if(intervals.size()==0) {
+            return res;
+        }
+        sort(intervals.begin(), intervals.end());
+        res.push_back(intervals[0]);
+        for(int i = 1; i < intervals.size(); i++) {
+            vector<int> curr = res.back();
+            if(overlap(curr, intervals[i])) {
+                vector<int> tmp = merge(curr, intervals[i]);
+                res.pop_back();
+                res.push_back(tmp);
+            } else {
+                res.push_back(intervals[i]);
+            }
+        }
+        return res;
+    }
+    bool overlap(vector<int> inte1, vector<int> inte2) {
+        if(inte1[1] >= inte2[0]) {
+            return true;
+        }
+        return false;
+    }
+    vector<int> merge(vector<int> inte1, vector<int> inte2) {
+        vector<int> res;
+        res.push_back(min(inte1[0], inte2[0]));
+        res.push_back(max(inte1[1], inte2[1]));
+        return res;
+    }
+};
+
+---------------动态规划汇总------------------
+5. Longest Palindromic Substring
+
+reference:https://blog.csdn.net/u013309870/article/details/70742315
+
+class Solution {
+public:
+    string longestPalindrome(string s) {
+        if(s.length() == 0 || s.length() == 1) {
+            return s;
+        }
+        const int N = s.length();
+        bool dp[N+1][N+1] = {false};
+        // substring s[i...j]
+        for(int j = 1; j <= N; j++) {
+            for(int i = 1; i <= j; i++) {
+                if(i == j) {
+                    dp[j][i] = true;
+                } else if(i + 1 == j) {
+                    dp[j][i] = s[i-1] == s[j-1];
+                } else { // j > i+1
+                    dp[j][i] = s[i-1] == s[j-1] && dp[j-1][i+1];
+                }
+            }
+        }
+        string res = "";
+        for(int j = 1; j <= N; j++) {
+            for(int i = 1; i <= j; i++) {
+                if(dp[j][i] && res.length() < j - i + 1) {
+                    res = s.substr(i-1, j - i + 1);
+                } 
+            }
+        }
+        return res;
+    }
+};
+
+53. Maximum Subarray
+
+class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        const int N = nums.size();
+        if(N == 0) {
+            return 0;
+        }
+        vector<int> dp(N); // maximum sum of subsequence that ends with nums[i]
+        dp[0] = nums[0];
+        for(int i = 1; i < N; i++) {
+            dp[i] = max(dp[i-1] + nums[i], nums[i]);
+        }
+        return *max_element(dp.begin(), dp.end());
+    }
+};
+
+14. Longest Common Prefix
+
+class Solution {
+public:
+    string longestCommonPrefix(vector<string>& strs) {
+        if(strs.size() == 0) {
+            return "";
+        }
+        if(strs.size() == 1) {
+            return strs[0];
+        }
+        int shortestLen = strs[0].length();
+        for(string s : strs) {
+            if(s.length() < shortestLen) {
+                shortestLen = s.length();
+            }
+        }
+        int l = 0, h = shortestLen;
+        string res = "";
+        while(l < h) {
+            int mid = l + (h - l) / 2;
+            if(isPrefix(strs, l, mid - l + 1)) {
+                res += strs[0].substr(l, mid - l + 1);
+                l = mid + 1; 
+            } else {
+                h = mid; 
+            }
+        }
+        return res;
+    }
+    bool isPrefix(vector<string>& strs, int i, int len) {
+        string tmp = strs[0].substr(i, len);
+        for(string s : strs) {
+            if(s.substr(i, len) != tmp) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+134. Gas Station
+class Solution {
+public:
+    int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+        int N = gas.size();
+        vector<bool> canStart(N, true);
+        for(int i = 0; i < N; i++) {
+            if(gas[i] < cost[i]) {
+                canStart[i] = false;
+            }
+        }
+        int start = 0;
+        for(int i = 0; i < N; i++) {
+            if(canStart[i]) {
+                start = i;
+                break;
+            }
+        }
+        for(int i = start; i < N; i++) {
+            if(goFromStation(gas, cost, i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    bool goFromStation(vector<int>& gas, vector<int>& cost, int index) {
+        int tank = 0, i = index;
+        while(1) {
+            tank += gas[i];
+            tank -= cost[i]; // trying to next
+            if(tank < 0) {
+                return false;
+            }
+            if(i == gas.size() - 1) {
+                i = 0;
+            } else {
+                i++; // go to next station
+            }
+            if(i == index) {
+                break;
+            }
+        }
+        return true;
+    }
+};
+
+3. Longest Substring Without Repeating Characters
+class Solution {
+public:
+    int lengthOfLongestSubstring(string s) {
+        if(s == "" || s.length() == 0) {
+            return 0;
+        }
+        map<char, int> m; // 某字符是最右下标
+        const int n = s.length();
+        vector<int> dp(n, 0); // 以i结尾的字符串的最长不重复子串
+        dp[0] = 1;
+        int start = 0;
+        m[s[0]] = 0;
+        for(int i = 1; i < n; i++) {
+            if(exists(s, start, i - 1, s[i])) {
+                dp[i] = i - m[s[i]];
+                start = m[s[i]] + 1;
+                
+            } else {
+                dp[i] = dp[i-1] + 1;
+            }
+            m[s[i]] = i;
+        }
+        return *max_element(dp.begin(), dp.end());
+    }
+    bool exists(string s, int start, int end, char ch) {
+        if(start > end) {
+            return false;
+        }
+        for(int i = start; i <= end; i++) {
+            if(s[i] == ch) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
