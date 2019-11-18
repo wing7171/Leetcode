@@ -784,3 +784,165 @@ public:
         return false;
     }
 };
+
+739. Daily Temperatures
+
+class Solution {
+public:
+    vector<int> dailyTemperatures(vector<int>& T) {
+        stack<int> s;
+        const int n = T.size();
+        vector<int> res(n,0);
+        for(int i = 0; i < n; i++) {
+            while(!s.empty() && T[s.top()] < T[i]) { // bigger temp
+                int peak = s.top(); s.pop();
+                res[peak] = i - peak;
+            }
+            s.push(i); // store every index to see if there is bigger temp after
+        }
+        return res;
+    }
+};
+
+347. Top K Frequent Elements
+
+class Solution {
+public:
+    vector<int> topKFrequent(vector<int>& nums, int k) {
+        if(nums.size() == 0 || nums.size() == 1) {
+            return nums;
+        }
+        map<int,int> m;
+        for(int num : nums) {
+            m[num] = 0;
+        }
+        for(int num : nums) {
+            m[num]++;
+        }
+        const int distCount = m.size();
+        const int n = nums.size();
+        vector<vector<int> > bucket(n+1);
+        for(map<int,int>::iterator iter = m.begin(); iter != m.end(); iter++) {
+            bucket[iter->second].push_back(iter->first);
+         }
+        vector<int> res;
+        for(int i = n; i >= 0; i--) {
+            for(int j = 0; j < bucket[i].size(); j++) {
+                res.push_back(bucket[i][j]); 
+                k--;
+                if(k == 0) {
+                    return res;
+                }
+            }
+            
+        }
+        return res;      
+    }
+
+10. Regular Expression Matching
+
+class Solution {
+public:
+    bool isMatch(string s, string p) {
+        if(s == p) {
+            return true;
+        }
+        bool isFirstMatch = false;
+        if(s.length() > 0 && p.length() > 0 && (s[0] == p[0] || p[0] == '.')) {
+            isFirstMatch = true;
+        }
+        if(p[1] == '*') {
+            return isFirstMatch && isMatch(s.substr(1, s.length() - 1), p) // match one or more
+                || p.length() >= 2 && isMatch(s, p.substr(2, p.length() - 2)); // not match any
+        }
+        // s[i] matches p[j] and p[j+1] is not *
+        return isFirstMatch && 
+            isMatch(s.substr(1, s.length() - 1), p.substr(1, p.length() - 1));
+    }
+};
+
+114. 二叉树展开为链表
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    void flatten(TreeNode* root) {
+        if(!root) {
+            return;
+        }
+        stack<TreeNode*> st;
+        TreeNode* node = root;
+        while(node) {
+            if(node->right) {
+                st.push(node->right);
+            }
+            TreeNode* lchild = node->left;
+            if(lchild) {
+                node->right = lchild;
+                node->left = NULL;
+                node = lchild;
+            } else if(!st.empty()) {
+                TreeNode* next = st.top();
+                st.pop();
+                node->right = next;
+                node->left = NULL;
+                node = next;
+            } else {
+                node = NULL;
+            }
+        }
+        
+    }
+};
+
+744. 寻找比目标字母大的最小字母
+class Solution {
+public:
+    char nextGreatestLetter(vector<char>& letters, char target) {
+        char res  = ' ';
+        if(letters.size() == 0) {
+            return res;
+        }
+        int l = 0, h = letters.size() - 1;
+        while(l < h) {
+            int mid = l + (h - l) / 2;
+            if(letters[mid] > target) {
+                h = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+        res = letters[l] > target ? letters[l] : letters[0];
+        return res;
+    }
+};
+
+322. 零钱兑换
+class Solution {
+public:
+    int coinChange(vector<int>& coins, int amount) {
+        if(amount == 0) {
+            return 0;
+        }
+        int dp[amount+1];
+        for(int i = 0; i <= amount; i++) {
+            dp[i] = amount + 1;
+        }
+        dp[0] = 0;
+        for(int i = 1; i <= amount; i++) {
+            for(int coin : coins) {
+                if(i >= coin) {
+                    dp[i] = min(dp[i], dp[i - coin] + 1);
+                }
+            }
+        }
+        return dp[amount] <= amount ? dp[amount] : -1;
+    }
+};
