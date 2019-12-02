@@ -946,3 +946,128 @@ public:
         return dp[amount] <= amount ? dp[amount] : -1;
     }
 };
+
+96. 不同的二叉搜索树
+class Solution {
+public:
+    int numTrees(int n) {
+        int G[n+1];
+        memset(G, 0, (n+1)*sizeof(int));
+        G[0] = 1;
+        G[1] = 1;
+        for(int i = 2; i <= n; i++) { // calculate G[i], length i
+            for(int j = 1; j <= i; j++) { // j as root
+                G[i] += G[j - 1] * G[i - j];
+            }
+        }
+        return G[n];
+    }
+};
+
+115. 不同的子序列
+class Solution {
+public:
+    int numDistinct(string s, string t) {
+        const int m = s.length(), n = t.length();
+        long int dp[m+1][n+1];
+        for(int i = 0; i <= m; i++) {
+            for(int j = 0; j <= n; j++) {
+                dp[i][j] = 0;
+            }
+        }
+        for(int i = 0; i <= m; i++) {
+            dp[i][0] = 1; // 空串是任何串的子序列
+        }
+        for(int i = 1; i <= m; i++) {
+            for(int j = 1; j <= n; j++) {
+                if(s[i-1] == t[j-1]) {
+                    dp[i][j] = dp[i-1][j-1] + dp[i-1][j];
+                } else {
+                    dp[i][j] = dp[i-1][j];
+                }
+            }
+        }
+        return dp[m][n];
+    }
+};
+
+97. 交错字符串
+class Solution {
+public:
+    bool isInterleave(string s1, string s2, string s3) {
+        const int m = s1.length(), n = s2.length(), t = s3.length();
+        if(m + n < t) {
+            return false;
+        } 
+        bool dp[m+1][n+1]; // s1[1...i] and s2[1...j] can make s3[1...i+j] or not
+        dp[0][0] = true;
+        for(int i = 1; i <= m; i++) {
+            if(matches(s1, i, s3, i)) {
+                dp[i][0] = dp[i-1][0];
+            } else {
+                dp[i][0] = false;
+            }
+        }
+        for(int i = 1; i <= n; i++) {
+            if(matches(s2, i, s3, i)) {
+                dp[0][i] = dp[0][i-1];
+            } else {
+                dp[0][i] = false;
+            }
+        }
+        for(int i = 1; i <= m; i++) {
+            for(int j = 1; j <= n; j++) {
+                bool flag = false;
+                if(matches(s1, i, s3, i + j)) { // 当前匹配, 结果取决于子问题是否成立
+                    dp[i][j] = dp[i - 1][j];
+                    flag = dp[i][j];
+                } 
+                if(!flag && matches(s2, j, s3, i + j)) {
+                    dp[i][j] = dp[i][j - 1];
+                    flag = dp[i][j];
+                }
+                if(!flag) {
+                    dp[i][j] = false;
+                }
+            }
+        }
+        return dp[m][n];
+    }
+    bool matches(string s1, int i, string s2, int j) {
+        if(i == 0 && j == 0) {
+            return true;
+        } else if(i == 0) {
+            return false;
+        } else if(j == 0) {
+            return false;
+        }
+        if(s1[i - 1] == s2[j - 1]) {
+            return true;
+        }
+        return false;
+    }
+};
+
+5. 最长回文子串
+class Solution {
+public:
+    string longestPalindrome(string s) {
+        if(s.empty()) {
+            return "";
+        }
+        const int n = s.length();
+        bool dp[n][n] = {false};
+        int left = 0, len = 1;
+        for(int i = 0; i < n; i++) {
+            dp[i][i] = true;
+            for(int j = 0; j < i; j++) {
+                dp[j][i] = s[j] == s[i] && (i - j < 2 || dp[j + 1][i - 1]);
+                if(dp[j][i] && i - j + 1 > len) {
+                    left = j;
+                    len = i - j + 1;
+                }
+            }
+        }
+        return s.substr(left, len);
+    }
+};
