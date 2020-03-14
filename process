@@ -76,7 +76,7 @@ public:
 };
 
 理解与解释：
-因为本题是最长子串，字符之间必须相邻，所以找字串的时候只能动字符串的首和尾。
+因为本题是最长子串，字符之间必须相邻，所以找子串的时候只能动字符串的首和尾。
 一旦出现重复，首指针向右滑动一个，实际是个暴力遍历的算法。
 
 *改进版*
@@ -948,15 +948,23 @@ public:
 };
 
 96. 不同的二叉搜索树
+// 分析：取任意一个数字（根）将数组分成两部分
+// 该数组能形成多少个不同的二叉搜索树（原问题）
+// 取决于两个子数组（即左右子树）能形成多少个不同的二叉搜索树（子问题）
+// 利用动态规划解决
+// 含义：G[i]表示长度为i的数组能形成多少个...
+// 递推式：[1...i]每一个数字都可以作为根，形成不同的二叉搜索树
+// G[i] += G[j - 1] * G[i - j], for all 1 <= j <= i
+// 解释：G[j - 1] 和 G[i - j]分别表示左、右子树，二者是乘法关系
 class Solution {
 public:
     int numTrees(int n) {
-        int G[n+1];
-        memset(G, 0, (n+1)*sizeof(int));
-        G[0] = 1;
-        G[1] = 1;
-        for(int i = 2; i <= n; i++) { // calculate G[i], length i
-            for(int j = 1; j <= i; j++) { // j as root
+        int G[n + 1];
+        memset(G, 0, (n + 1) * sizeof(int));
+        G[0] = 1; // 空树
+        G[1] = 1; // 只有一个节点
+        for(int i = 2; i <= n; i++) {
+            for(int j = 1; j <= i; j++) {
                 G[i] += G[j - 1] * G[i - j];
             }
         }
@@ -1071,3 +1079,194 @@ public:
         return s.substr(left, len);
     }
 };
+
+Algorithm makes me feel stupid. Never copy code ever. Never stop trying.
+
+32. 最长有效括号
+
+class Solution {
+public:
+    int longestValidParentheses(string s) {
+        const int n = s.length();
+        int dp[n + 1];
+        memset(dp, 0, (n + 1) * sizeof(int));
+        for(int i = 2; i <= n; i++) {
+            if(s[i - 1] == ')') { // update ) only cuz valid sub seq ends with ) only
+                if(s[i - 2] == '(') { // ...()...
+                    dp[i] = dp[i - 2] + 2;
+                } else if(i - dp[i - 1] >= 2 && s[i - dp[i - 1] - 2] == '('){ // ...))
+                    dp[i] = dp[i - 1] + 2 +  dp[i - dp[i - 1] - 2]; // ...((...))...
+                } 
+            }
+        }
+        vector<int> res(dp, dp + n + 1);
+        return *max_element(res.begin(), res.end());
+    }
+};
+
+53. 最大子序和
+class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        const int n = nums.size();
+        if(n == 0) {
+            return 0;
+        }
+        int dp[n];
+        dp[0] = nums[0];
+        for(int i = 1; i < n; i++) {
+            dp[i] = dp[i - 1] > 0 ? dp[i - 1] + nums[i] : nums[i];
+        }
+        vector<int> res(dp, dp + n);
+        return *max_element(res.begin(), res.end());
+    }
+};
+
+152. 乘积最大子序列
+class Solution {
+public:
+    int maxProduct(vector<int>& nums) {
+        const int n = nums.size();
+        if(n == 0) {
+            return 0;
+        }
+        vector<int> bigger, smaller;
+        bigger.push_back(nums[0]);
+        smaller.push_back(nums[0]);
+        for(int i = 1; i < n; i++) {
+            int big = get_max(bigger[i - 1] * nums[i], smaller[i - 1] * nums[i], nums[i]);
+            int small = get_min(bigger[i - 1] * nums[i], smaller[i - 1] * nums[i], nums[i]);
+            bigger.push_back(big);
+            smaller.push_back(small);
+        }
+        return *max_element(bigger.begin(), bigger.end());
+    }
+    int get_max(int a, int b, int c) {
+        int res = max(a, b);
+        return max(res, c);
+    }
+    int get_min(int a, int b, int c) {
+        int res = min(a, b);
+        return min(res, c);
+    }
+};
+
+70. 爬楼梯
+class Solution {
+public:
+    int climbStairs(int n) {
+        if(n <= 2) {
+            return n;
+        }
+        int dp[n]; // dp[i]表示爬到当前层有多少种方案
+        dp[0] = 1, dp[1] = 2;
+        for(int i = 2; i < n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2]; // 一次爬两层和一次爬一层到当前层
+        }
+        return dp[n - 1];
+    }
+};
+
+91. 解码方法
+class Solution {
+public:
+    int numDecodings(string s) {
+        const int n = s.length();
+        int dp[n + 1];
+        memset(dp, 0, (n + 1) * sizeof(int));
+        dp[0] = 1, dp[1] = s[0] == '0' ? 0: 1;
+        for(int i = 2; i <= n; i++) {
+            if(s[i - 1] != '0') {
+                dp[i] += dp[i - 1]; // 一个数字单独解码
+            }
+            if(s[i - 2] == '1' || (s[i - 2] == '2' && s[i - 1] <= '6')) {
+                dp[i] += dp[i - 2]; // 两个数字组合解码
+            }
+        }
+        return dp[n];        
+    }
+};
+
+131. 分割回文串
+class Solution {
+public:
+    vector<vector<string>> partition(string s) {
+        const int n = s.length();
+        vector<vector<bool>> dp(n, vector<bool> (n, false)); // dp[i][j]:s[j...i]是否为回文串
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j <= i; j++) {
+                // dp[j][i] = isPalindrome(s.substr(j, i - j + 1))
+                // 暴力法需要判断每一个可能的子串是否是回文串【重复计算】
+                // 将计算结果保存在dp数组中，提高效率
+                dp[i][j] = s[i] == s[j] && (i - j < 2 || dp[i - 1][j + 1]);
+            }
+        }
+        vector<vector<string>> res;
+        vector<string> temp;
+        dfs(s, 0, dp, res, temp);
+        return res;
+    }
+    void dfs(string s, int start, vector<vector<bool>> dp, vector<vector<string>>& res, vector<string> temp) {
+        if(start == s.length()) {
+            res.push_back(temp);
+            temp.clear();
+            return;
+        }
+        for(int j = start; j < s.length(); j++) {
+            if(dp[j][start]) {
+                temp.push_back(s.substr(start, j + 1 - start));
+                dfs(s, j + 1, dp, res, temp);
+                temp.pop_back();
+            } 
+        }
+    }
+};
+
+132. 分割回文串 II
+class Solution {
+public:
+    int minCut(string s) {
+        const int n = s.length();
+        vector<vector<bool>> dp(n, vector<bool> (n, false)); // dp[i][j]:s[j...i]是否为回文串
+        int minCut[n]; // minCut[j]:s[0...j]最少分割次数
+        for(int i = 0; i < n; i++) {
+            minCut[i] = i;
+        }
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j <= i; j++) {
+                dp[i][j] = s[i] == s[j] && (i - j < 2 || dp[i - 1][j + 1]);
+                if(dp[i][j]) {
+                    minCut[i] = j == 0 ? 0 : min(minCut[i], minCut[j - 1] + 1);
+                }
+            }
+        }
+        return minCut[n - 1];
+    }
+};
+
+139. 单词拆分
+class Solution {
+public:
+    bool wordBreak(string s, vector<string>& wordDict) {
+        const int n = s.length();
+        int dp[n + 1] = {false}; // dp[i]:s[i]和s[i+1]处是否可切分
+        dp[0] = true; // 单词的开头可切分
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j <= i; j++) { // s[j...i]
+                string sub = s.substr(j, i - j + 1);
+                if(exits(wordDict, sub)) {
+                    dp[i + 1] = dp[i + 1] || dp[j]; // j = i + 1 - (i - j +1)
+                }
+            }
+        }
+        return dp[n];
+    }
+    bool exits(vector<string>& wordDict, string s) {
+        if(find(wordDict.begin(), wordDict.end(), s) != wordDict.end()) {
+            return true;
+        }
+        return false;
+    }
+};
+
+140. 单词拆分 II
